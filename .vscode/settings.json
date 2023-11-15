@@ -1,0 +1,4 @@
+{
+  "appService.defaultWebAppToDeploy": "undefined/subscriptions/5e0d0a92-c7c8-410d-8935-52fa7b9e1ed8/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/ANM-Musicbase",
+  "appService.deploySubpath": "."
+}

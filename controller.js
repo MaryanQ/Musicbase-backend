@@ -1,7 +1,7 @@
 //import { error } from "console";
-//import db from "./db-connect";
+
 import { v4 as uuidv4 } from "uuid";
-import dbConfig from "./db-connect.js";
+//import dbConfig from "./db-connect.js";
 
 //get all artists
 function getAllArtists(req, res) {
@@ -177,25 +177,29 @@ async function getTracksByArtistId(req, res) {
     }
   });
 }
-
 async function postArtist(req, res) {
-  const artist = req.body;
-  const artistId = uuidv4();
-  const query = /*SQL*/ ` 
-  INSERT INTO artists (artistName, artistImage, shortDescription, id)
-  VALUES (?, ?, ?, ?);
+  const artists = req.body;
+  const artistid = uuidv4();
+
+  const query = /*SQL*/ `
+    INSERT INTO artists (id, name, genre, image, birthdate, gender)
+    VALUES (?, ?, ?, ?, ?, ?);
   `;
+
   const values = [
-    artist.artistName,
-    artist.artistImage,
-    artist.shortDescription,
-    artistId,
+    artists.artistsid,
+    artists.artistsname,
+    artists.artistsgenre,
+    artists.artistsimage,
+    artists.artistsbirthdate,
+    artists.artistsgender,
   ];
+
   dbConfig.query(query, values, (error, results, fields) => {
     if (error) {
       console.log(error);
     } else {
-      console.log(`Artist added as ${artistId}`);
+      console.log(`Artist added as ${artistid}`);
       res.json(results);
     }
   });
