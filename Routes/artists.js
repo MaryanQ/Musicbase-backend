@@ -1,5 +1,7 @@
-import dbConfig from "../db-connect.js";
 import { Router } from "express";
+import dbConfig from "../db-connect.js";
+import mysql from "mysql2";
+import tracksRouter from "./tracks.js";
 
 const artistsRouter = Router();
 
@@ -45,8 +47,8 @@ artistsRouter.get("/:id/albums", (req, res) => {
   const queryString = /*sql*/ `
     SELECT * FROM artists, albums 
     WHERE artists.id=? AND
-    albums.albumID = artists.id
-    ORDER BY albums.AlbumTitle;`; // sql query
+    albums.id = artists.id
+    ORDER BY albums.title;`; // sql query
 
   const values = [id];
 
@@ -62,64 +64,55 @@ artistsRouter.get("/:id/albums", (req, res) => {
 //---- POST HTTP ----//
 
 // Create a new artist
-artistsRouter.post("/", async (request, response) => {
+artistsRouter.post("/", (req, res) => {
   try {
-    const { name, genre, image, birthdate, gender } = request.body;
+    const { name, image, birthdate, gender } = req.body;
 
-    // Indsæt den nye artist i artists-tabellen
-    const insertArtistQuery = `
-      INSERT INTO artists (name, genre, image, birthdate, gender)
-      VALUES (?, ?, ?, ?, ?);
-    `;
+    if (!name || !image || !birthdate || !gender) {
+      return res.status(400).json({ error: "More info about artist required" });
+    }
 
-    const insertArtistValues = [name, genre, image, birthdate, gender];
+    // Check if the artistName already exists in the database
+    const checkQuery = "SELECT artists.id FROM `artists` WHERE name = ?";
 
-    const [artistResult] = await dbConfig.execute(
-      insertArtistQuery,
-      insertArtistValues
-    );
+    dbConfig.query(checkQuery, [name], (checkErr, checkResults) => {
+      if (checkErr) {
+        console.log(checkErr);
+        return res
+          .status(500)
+          .json({ error: "An error occurred while checking artistName" });
+      }
 
-    // Hent ID'et for den nyoprettede kunstner
-    const artistId = artistResult.insertId;
+      if (checkResults.length > 0) {
+        return res.status(400).json({ error: "ArtistName already exists" });
+      }
 
-    response
-      .status(201)
-      .json({ message: "Artist created successfully", artistId });
+      // Create a new artist in the database
+      const insertQuery =
+        "INSERT INTO `artists` (name, image, birthdate, gender) VALUES (?, ?, ?, ?, ?)";
+
+      dbConfig.query(
+        insertQuery,
+        [name, image, birthdate, gender],
+        (insertErr, result) => {
+          if (insertErr) {
+            console.log(insertErr);
+            res
+              .status(500)
+              .json({ error: "An error occurred while creating the artist" });
+          } else {
+            const newArtistId = result.insertId;
+            res.status(201).json({
+              artistId: newArtistId,
+              message: "Artist created successfully",
+            });
+          }
+        }
+      );
+    });
   } catch (error) {
     console.error(error);
-    response.status(500).json({ message: "Internal server error" });
-  }
-});
-
-artistsRouter.put("/:id", async (request, response) => {
-  try {
-    const artistId = request.params.id;
-
-    // Udtræk opdaterede kunstneroplysninger fra anmodningens krop
-    const { name, birthdate, genres, shortDescription, images } = request.body;
-
-    // Opdater kunstneren i artists-tabellen
-    const updateArtistQuery = /*sql*/ `
-        UPDATE artists
-        SET name = ?, birthdate = ?, genres = ?, shortDescription = ?, images = ?
-        WHERE id = ?;
-        `;
-
-    const updateArtistValues = [
-      name,
-      birthdate,
-      genres,
-      shortDescription,
-      images,
-      artistId,
-    ];
-
-    await dbConnection.execute(updateArtistQuery, updateArtistValues);
-
-    response.json({ message: "Artist updated successfully" });
-  } catch (error) {
-    console.error(error);
-    response.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -130,7 +123,7 @@ artistsRouter.put("/:id", (request, response) => {
     const artistId = request.params.id;
 
     // Udtræk opdaterede kunstneroplysninger fra anmodningens krop
-    const { name, genre, image, birthdate, gender } = request.body;
+    const { name, image, birthdate, gender } = request.body;
 
     if (!name) {
       return response.status(400).json({ error: "ArtistName is required" });
@@ -139,13 +132,13 @@ artistsRouter.put("/:id", (request, response) => {
     // Opdater kunstneren i artists-tabellen
     const updateQuery = /*sql*/ `
       UPDATE artists
-      SET name = ?, genre = ?, image = ?,  birthdate = ?, gender = ?
+      SET name = ?, image = ?,  birthdate = ?, gender = ?
       WHERE artists.id = ?;
       `;
 
-    dbConfig.query(
+    connection.query(
       updateQuery,
-      [name, genre, image, birthdate, gender, artistId],
+      [name, image, birthdate, gender, artistId],
       (updateErr) => {
         if (updateErr) {
           console.log(updateErr);
@@ -178,7 +171,7 @@ artistsRouter.delete("/:id", (request, response) => {
       WHERE id = ?;
     `;
 
-    dbConfig.query(deleteArtistQuery, [artistId], (deleteErr) => {
+    connection.query(deleteArtistQuery, [artistId], (deleteErr) => {
       if (deleteErr) {
         console.error(deleteErr);
         response.status(500).json({ message: "Internal server error" });

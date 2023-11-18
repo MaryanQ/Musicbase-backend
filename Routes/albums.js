@@ -1,15 +1,14 @@
 import { Router } from "express";
-import connection from "../database.js";
-import mysql from "mysql2";
 import dbConfig from "../db-connect.js";
+import mysql from "mysql2";
 
 const albumsRouter = Router();
 
 albumsRouter.get("/", async (request, response) => {
   const queryString = /*sql*/ `
     SELECT * FROM artists, albums 
-    WHERE albums.albumID = artists.id
-    ORDER BY albums.AlbumTitle;`; // sql query
+    WHERE albums.id = artists.id
+    ORDER BY albums.title;`; // sql query
 
   dbConfig.query(queryString, (error, results) => {
     if (error) {
@@ -24,18 +23,18 @@ albumsRouter.get("/:id", (request, response) => {
   const id = request.params.id;
   const queryString = /*sql */ `
         SELECT
-            albums.AlbumTitle AS albumTitle,
-            tracks.TrackID AS trackId,
-            tracks.TrackName AS trackTitle,
-            tracks.ReleaseDate AS releaseDate,
+            albums.title AS albumTitle,
+            tracks.id AS trackId,
+            tracks.name AS trackTitle,
+            tracks.release_date AS releaseDate,
             album_tracks.position
         FROM albums
         JOIN album_tracks
-            ON albums.AlbumID = album_tracks.AlbumID
+            ON albums.id = album_tracks.album_id
         JOIN tracks
-            ON tracks.TrackID = album_tracks.TrackID
-        WHERE albums.AlbumID = ?
-        ORDER BY albums.AlbumTitle, album_tracks.position;`;
+            ON tracks.id = album_tracks.track_id
+        WHERE albums.id = ?
+        ORDER BY albums.title, album_tracks.position;`;
   const values = [id];
 
   dbConfig.query(queryString, values, (error, results) => {

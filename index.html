@@ -5,8 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DATA</title>
-    <link rel="stylesheet" href="/CSS/search.css" />
-    <link rel="stylesheet" href="/CSS/style.css" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header>
@@ -20,25 +19,37 @@
           placeholder="Search for music..."
           id="searchInput"
         />
-
-        <label for="searchType">Sort by</label>
-        <select id="searchType">
-          <option value="artistName">Artist</option>
-          <option value="albumName">Album</option>
-          <option value="songName">Song</option>
-        </select>
       </div>
     </form>
 
-    <div>
+    <div id="container">
       <h2 class="data">Artists</h2>
       <section id="artists-container" class="grid-container"></section>
 
       <h2 class="data">Albums</h2>
-      <section id="albums-container" class="grid-container"></section>
+      <table>
+        <thead>
+          <tr>
+            <th><h3>Artist</h3></th>
+            <th><h3>Album Name</h3></th>
+            <th><h3>Release date</h3></th>
+          </tr>
+        </thead>
+        <tbody id="albums-container"></tbody>
+      </table>
 
       <h2 class="data">Songs</h2>
-      <section id="songs-container" class="grid-container"></section>
+
+      <table>
+        <thead>
+          <tr>
+            <th><h3>Name</h3></th>
+            <th><h3>Tracks</h3></th>
+            <th><h3>Release date</h3></th>
+          </tr>
+        </thead>
+        <tbody id="tracks-container"></tbody>
+      </table>
     </div>
     <footer>
       <p>by Naima, Mariam og Aisha</p>
